@@ -8,11 +8,9 @@ build-generator: $(GENERATOR)
 $(GENERATOR): cmd/generator/*.go
 	go build -o $@ ./cmd/generator
 
-
-
-gen/$(PALETTE_NAME)/%: templates/%.tmpl $(PALETTE)
+gen/$(PALETTE_NAME)/%: templates/%.tmpl $(PALETTE) $(GENERATOR)
 	@mkdir -p gen/$(PALETTE_NAME)
-	$(GENERATOR) templates/$(notdir $*).tmpl < $(PALETTE) > $@
+	$(GENERATOR) $(PALETTE) < templates/$(notdir $*).tmpl > $@
 
 
 alacritty: gen/$(PALETTE_NAME)/alacritty-theme.toml

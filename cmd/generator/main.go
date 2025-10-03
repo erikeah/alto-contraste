@@ -3,9 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"math"
 	"os"
-	"path/filepath"
 	"text/template"
 )
 
@@ -39,31 +39,47 @@ func toHexNoAlpha(color Color) string {
 // [ r g b a ]
 type Color [4]float64
 
+type Base16 struct {
+	Black      Color `json:"black"`
+	Blue       Color `json:"blue"`
+	Cyan       Color `json:"cyan"`
+	Green      Color `json:"green"`
+	Magenta    Color `json:"magenta"`
+	Red        Color `json:"red"`
+	White      Color `json:"white"`
+	Yellow     Color `json:"yellow"`
+	AltBlack   Color `json:"alt_black"`
+	AltBlue    Color `json:"alt_blue"`
+	AltCyan    Color `json:"alt_cyan"`
+	AltGreen   Color `json:"alt_green"`
+	AltMagenta Color `json:"alt_magenta"`
+	AltRed     Color `json:"alt_red"`
+	AltWhite   Color `json:"alt_white"`
+	AltYellow  Color `json:"alt_yellow"`
+}
+
+type Extras struct {
+}
+
 type Palette struct {
 	Background    Color `json:"background"`
 	Foreground    Color `json:"foreground"`
-	Black         Color `json:"black"`
-	Blue          Color `json:"blue"`
-	Cyan          Color `json:"cyan"`
-	Green         Color `json:"green"`
-	Magenta       Color `json:"magenta"`
-	Red           Color `json:"red"`
-	White         Color `json:"white"`
-	Yellow        Color `json:"yellow"`
-	AltBackground Color `json:"alt_background"`
-	AltBlack      Color `json:"alt_black"`
-	AltBlue       Color `json:"alt_blue"`
-	AltCyan       Color `json:"alt_cyan"`
-	AltForeground Color `json:"alt_foreground"`
-	AltGreen      Color `json:"alt_green"`
-	AltMagenta    Color `json:"alt_magenta"`
-	AltRed        Color `json:"alt_red"`
-	AltWhite      Color `json:"alt_white"`
-	AltYellow     Color `json:"alt_yellow"`
+	AltBackground Color `json:"alt_background"` // Cursor
+	AltForeground Color `json:"alt_foreground"` // Cursor
+	*Base16
+	*Extras
 }
 
 func main() {
-	decoder := json.NewDecoder(os.Stdin)
+	if len(os.Args) != 2 {
+		os.Exit(1)
+	}
+	theme, err := os.Open(os.Args[1])
+	if err != nil {
+		println(err.Error())
+		os.Exit(1)
+	}
+	decoder := json.NewDecoder(theme) // TODO: Read from file provided from param
 	palette := &Palette{}
 	if err := decoder.Decode(palette); err != nil {
 		println(err.Error())
@@ -73,18 +89,19 @@ func main() {
 		"toHexAlpha":   toHexAlpha,
 		"toHexNoAlpha": toHexNoAlpha,
 	}
-	if len(os.Args) != 2 {
-		os.Exit(1)
+	templateBytes, err := io.ReadAll(os.Stdin)
+	if err != nil {
+		println(err.Error())
+		os.Exit(2)
+
 	}
-	templatePath := os.Args[1]
-	tmplSet, err := template.New("").Funcs(funcMap).ParseFiles(templatePath)
+	templateContent := string(templateBytes)
+	tmpl, err := template.New("").Funcs(funcMap).Parse(templateContent)
 	if err != nil {
 		println(err.Error())
 		os.Exit(2)
 	}
-	templateName := filepath.Base(templatePath)
-	specificTmpl := tmplSet.Lookup(templateName)
-	err = specificTmpl.Execute(os.Stdout, palette)
+	err = tmpl.Execute(os.Stdout, palette)
 	if err != nil {
 		println(err.Error())
 		os.Exit(2)
