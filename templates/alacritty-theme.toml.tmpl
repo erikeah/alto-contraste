@@ -1,0 +1,27 @@
+[colors.cursor]
+cursor = "0x{{.AltBackground | toHexNoAlpha}}"
+text = "0x{{.AltForeground | toHexNoAlpha}}"
+
+[colors.primary]
+background = "0x{{.Background | toHexNoAlpha}}"
+foreground = "0x{{.Foreground | toHexNoAlpha}}"
+
+[colors.normal]
+black = "#{{.Black | toHexNoAlpha}}"
+blue = "#{{.Blue | toHexNoAlpha}}"
+cyan = "#{{.Cyan | toHexNoAlpha}}"
+green = "#{{.Green | toHexNoAlpha}}"
+magenta = "#{{.Magenta | toHexNoAlpha}}"
+red = "#{{.Red | toHexNoAlpha}}"
+yellow = "#{{.Yellow | toHexNoAlpha}}"
+white = "#{{.White | toHexNoAlpha}}"
+
+[colors.bright]
+black = "#{{.AltBlack | toHexNoAlpha}}"
+blue = "#{{.AltBlue | toHexNoAlpha}}"
+cyan = "#{{.AltCyan | toHexNoAlpha}}"
+green = "#{{.AltGreen | toHexNoAlpha}}"
+magenta = "#{{.AltMagenta | toHexNoAlpha}}"
+red = "#{{.AltRed | toHexNoAlpha}}"
+yellow = "#{{.AltYellow | toHexNoAlpha}}"
+white = "#{{.AltWhite | toHexNoAlpha}}"
