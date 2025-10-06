@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Palette Editor v2.3 (Local Storage)</title>
+    <style>
+        /* --- General Styling (from V2) --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f8f8f8;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h1 {
+            color: #012971;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        /* --- Main Layout --- */
+        #main-layout {
+            display: flex;
+            gap: 20px;
+        }
+        
+        /* --- Palette Display (Left) --- */
+        #palette-viewer {
+            flex-grow: 1;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            overflow: hidden;
+            min-width: 600px;
+        }
+
+        .palette-row {
+            display: flex;
+            flex-wrap: nowrap;
+            margin: 0;
+            padding: 0;
+            height: 50px;
+            border-bottom: 1px solid #ccc;
+        }
+        .palette-row:last-child {
+            border-bottom: none;
+        }
+
+        .color-tile {
+            position: relative;
+            flex-grow: 1;
+            min-width: 30px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .color-tile:hover {
+            transform: scale(1.05);
+            z-index: 10;
+        }
+
+        .tile-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 0.7em;
+            color: #ffffff;
+            text-shadow: 1px 1px 2px #000000;
+            padding: 2px 0;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .color-tile:hover .tile-label {
+            opacity: 1;
+        }
+
+        /* --- Actions (Right) --- */
+        #actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 250px;
+            align-self: flex-start;
+        }
+
+        button {
+            background-color: #012971;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            text-align: center;
+            text-decoration: none;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #00409a;
+        }
+        
+        #read-button {
+            background-color: #0d6efd;
+        }
+        #read-button:hover {
+            background-color: #0b5ed7;
+        }
+
+        /* --- Output Area --- */
+        #output-json {
+            width: 100%;
+            height: 200px;
+            margin-top: 25px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+            border-radius: 4px;
+            resize: vertical;
+        }
+
+        #message {
+            margin-top: 10px;
+            font-weight: bold;
+            display: none;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .success {
+            color: green;
+            background-color: #e6ffe6;
+        }
+        .error {
+            color: red;
+            background-color: #ffe6e6;
+        }
+
+        /* --- Custom HSL Picker (from V2.2) --- */
+        #hsl-picker {
+            position: fixed; 
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            display: none;
+        }
+
+        #hsl-picker h3 {
+            margin-top: 0;
+            color: #012971;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+
+        .picker-group {
+            margin-bottom: 10px;
+        }
+        
+        .picker-group label {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 0.9em;
+            margin-bottom: 3px;
+        }
+
+        .picker-group input[type="range"] {
+            width: 100%;
+            height: 10px;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+            margin: 5px 0;
+            border-radius: 5px;
+            background: #f0f0f0;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #012971;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+
+        #hue-slider {
+            background: linear-gradient(to right, 
+                #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
+        }
+
+        #picker-preview {
+            width: 100%;
+            height: 30px;
+            border: 1px solid #ccc;
+            margin: 15px 0 10px 0;
+            border-radius: 4px;
+        }
+        
+        #picker-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        #picker-buttons button {
+            flex-grow: 1;
+        }
+        #save-button {
+            background-color: #28a745;
+        }
+        #save-button:hover {
+            background-color: #1e7e34;
+        }
+        #cancel-button {
+            background-color: #dc3545;
+        }
+        #cancel-button:hover {
+            background-color: #c82333;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🎨 Color Palette Editor v2.3 (Local Storage Persistence)</h1>
+        
+        <div id="main-layout">
+            <div id="palette-viewer">
+                </div>
+
+            <div id="actions">
+                <button id="copy-button">📝 Copy JSON to Clipboard</button>
+                <button id="read-button">📋 Read JSON from Clipboard</button>
+                <button id="clear-storage-button">🧹 Clear Saved Palette</button>
+                <div id="message"></div>
+            </div>
+        </div>
+
+        <textarea id="output-json" placeholder="The updated JSON will appear here..."></textarea>
+    </div>
+
+    <div id="hsl-picker">
+        <h3 id="picker-title">Editing: Key Name</h3>
+        
+        <div id="picker-preview"></div>
+
+        <div class="picker-group">
+            <label>Hue: <span id="hue-value">0°</span></label>
+            <input type="range" id="hue-slider" min="0" max="360" value="0">
+        </div>
+
+        <div class="picker-group">
+            <label>Saturation: <span id="saturation-value">100%</span></label>
+            <input type="range" id="saturation-slider" min="0" max="100" value="100">
+        </div>
+
+        <div class="picker-group">
+            <label>Lightness: <span id="lightness-value">50%</span></label>
+            <input type="range" id="lightness-slider" min="0" max="100" value="50">
+        </div>
+
+        <div id="picker-buttons">
+            <button id="save-button">💾 Save Changes</button>
+            <button id="cancel-button">❌ Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. Constants and Initial Data ---
+        const STORAGE_KEY = 'colorPaletteData';
+
+        const initialPalette = {{ .ToJSON }};
+
+        // --- 2. DOM Elements and State ---
+        let currentPalette = { ...initialPalette };
+        const viewerElement = document.getElementById('palette-viewer');
+        const outputJsonElement = document.getElementById('output-json');
+        const copyButton = document.getElementById('copy-button');
+        const readButton = document.getElementById('read-button');
+        const clearStorageButton = document.getElementById('clear-storage-button'); // NEW
+        const messageElement = document.getElementById('message');
+        
+        const picker = document.getElementById('hsl-picker');
+        const pickerTitle = document.getElementById('picker-title');
+        const preview = document.getElementById('picker-preview');
+        const hueSlider = document.getElementById('hue-slider');
+        const saturationSlider = document.getElementById('saturation-slider');
+        const lightnessSlider = document.getElementById('lightness-slider');
+        const hueValueSpan = document.getElementById('hue-value');
+        const saturationValueSpan = document.getElementById('saturation-value');
+        const lightnessValueSpan = document.getElementById('lightness-value');
+        const saveButton = document.getElementById('save-button');
+        const cancelButton = document.getElementById('cancel-button');
+
+        let editingKey = null;
+        let originalAlpha = 1;
+
+
+        // --- 3. Persistence Functions (NEW) ---
+
+        /** Loads palette data from local storage, or returns the initial palette if none is found. */
+        function loadPalette() {
+            try {
+                const storedData = localStorage.getItem(STORAGE_KEY);
+                if (storedData) {
+                    const loadedPalette = JSON.parse(storedData);
+                    // Simple check to ensure data structure is somewhat valid before loading
+                    if (typeof loadedPalette === 'object' && loadedPalette !== null && Object.keys(loadedPalette).length > 0) {
+                        return loadedPalette;
+                    }
+                }
+            } catch (e) {
+                console.error("Error loading palette from local storage:", e);
+                // Fall through to initialPalette
+            }
+            return { ...initialPalette };
+        }
+
+        /** Saves the current palette to local storage. */
+        function savePalette() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(currentPalette));
+            } catch (e) {
+                console.error("Error saving palette to local storage:", e);
+                showMessage("Warning: Failed to save changes to local storage.", true);
+            }
+        }
+
+        /** Clears the saved palette from local storage and reloads the initial palette. */
+        function clearSavedPalette() {
+            if (confirm("Are you sure you want to delete your saved palette? This will load the default configuration.")) {
+                try {
+                    localStorage.removeItem(STORAGE_KEY);
+                    currentPalette = { ...initialPalette };
+                    renderPalette();
+                    showMessage("Saved palette cleared. Default palette restored.");
+                } catch (e) {
+                    console.error("Error clearing local storage:", e);
+                    showMessage("Failed to clear local storage.", true);
+                }
+            }
+        }
+
+
+        // --- 4. Color Conversion Functions (from V2.1) ---
+        
+        /** Converts RGB array (0-1 floats) to Hex color string. */
+        function rgbArrayToHex(rgbArray) {
+            const [r, g, b] = rgbArray.slice(0, 3).map(c => Math.round(c * 255));
+            const toHex = c => c.toString(16).padStart(2, '0');
+            return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+        }
+
+        /** Converts RGB (0-1 floats) to HSL (H: 0-360, S: 0-100, L: 0-100). */
+        function rgbToHsl(r, g, b) {
+            let max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+
+            if (max === min) {
+                h = s = 0;
+            } else {
+                let d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    case b: h = (r - g) / d + 4; break;
+                }
+                h /= 6;
+            }
+
+            return [
+                Math.round(h * 360), 
+                Math.round(s * 100), 
+                Math.round(l * 100)
+            ];
+        }
+
+        /** Converts HSL (H: 0-360, S: 0-100, L: 0-100) to RGB (0-1 floats). */
+        function hslToRgb(h, s, l) {
+            h /= 360; 
+            s /= 100; 
+            l /= 100; 
+            let r, g, b;
+
+            if (s === 0) {
+                r = g = b = l; 
+            } else {
+                const hue2rgb = (p, q, t) => {
+                    if (t < 0) t += 1;
+                    if (t > 1) t -= 1;
+                    if (t < 1 / 6) return p + (q - p) * 6 * t;
+                    if (t < 1 / 2) return q;
+                    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+                    return p;
+                };
+                const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                const p = 2 * l - q;
+                r = hue2rgb(p, q, h + 1 / 3);
+                g = hue2rgb(p, q, h);
+                b = hue2rgb(p, q, h - 1 / 3);
+            }
+
+            return [
+                parseFloat(r.toFixed(4)),
+                parseFloat(g.toFixed(4)),
+                parseFloat(b.toFixed(4))
+            ];
+        }
+
+
+        // --- 5. UI and Rendering Functions ---
+
+        /** Shows a temporary message. */
+        function showMessage(text, isError = false) {
+            messageElement.textContent = text;
+            messageElement.className = isError ? 'error' : 'success';
+            messageElement.style.display = 'block';
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, 3000);
+        }
+
+        /** Creates the HTML for a single color tile. */
+        function createColorTile(key, rgbArray) {
+            const hexColor = rgbArrayToHex(rgbArray);
+
+            const div = document.createElement('div');
+            div.className = 'color-tile';
+            div.dataset.key = key;
+            div.style.backgroundColor = hexColor;
+            div.innerHTML = `<span class="tile-label">${key}</span>`;
+
+            div.addEventListener('click', () => openPicker(key));
+
+            return div;
+        }
+
+        /** Renders the entire palette interface in two rows. */
+        function renderPalette() {
+            viewerElement.innerHTML = ''; 
+            const keys = Object.keys(currentPalette);
+            
+            const standardKeys = keys.filter(k => !k.startsWith('alt_'));
+            const altKeys = keys.filter(k => k.startsWith('alt_'));
+
+            const getHue = (key) => {
+                const [r, g, b] = currentPalette[key];
+                const [h] = rgbToHsl(r, g, b); // rgbToHsl returns [h, s, l]
+                return h;
+            };
+
+            standardKeys.sort((keyA, keyB) => getHue(keyA) - getHue(keyB));
+            altKeys.sort((keyA, keyB) => getHue(keyA) - getHue(keyB));
+            
+            const rowsData = {
+                'Standard': standardKeys,
+                'Alternate': altKeys
+            };
+
+            for (const rowName in rowsData) {
+                const row = document.createElement('div');
+                row.className = 'palette-row';
+                row.id = `row-${rowName.toLowerCase()}`;
+                
+                rowsData[rowName].forEach(key => {
+                    row.appendChild(createColorTile(key, currentPalette[key]));
+                });
+                viewerElement.appendChild(row);
+            }
+
+            updateOutputJSON();
+        }
+
+        /** Updates the textarea with the current palette JSON. */
+        function updateOutputJSON() {
+            outputJsonElement.value = JSON.stringify(currentPalette, null, 2);
+        }
+
+        // --- 6. HSL Picker Logic (from V2.2) ---
+
+        /** Initializes the HSL picker for a given color key. */
+        function openPicker(key) {
+            editingKey = key;
+            const [r, g, b, a] = currentPalette[key];
+            originalAlpha = a;
+
+            const [h, s, l] = rgbToHsl(r, g, b);
+
+            hueSlider.value = h;
+            saturationSlider.value = s;
+            lightnessSlider.value = l;
+
+            pickerTitle.textContent = `Editing: ${key}`;
+            updatePickerUI(h, s, l);
+
+            picker.style.display = 'block';
+        }
+
+        /** Updates the HSL UI elements and slider backgrounds. */
+        function updatePickerUI(h, s, l) {
+            hueValueSpan.textContent = `${h}°`;
+            saturationValueSpan.textContent = `${s}%`;
+            lightnessValueSpan.textContent = `${l}%`;
+
+            const hslColor = `hsl(${h}, ${s}%, ${l}%)`;
+            preview.style.backgroundColor = hslColor;
+
+            saturationSlider.style.background = `linear-gradient(to right, 
+                hsl(${h}, 0%, ${l}%), 
+                hsl(${h}, 100%, ${l}%)
+            )`;
+
+            lightnessSlider.style.background = `linear-gradient(to right, 
+                #000000, 
+                hsl(${h}, ${s}%, 50%), 
+                #ffffff
+            )`;
+        }
+
+        /** Handles changes from the HSL sliders. */
+        function handleSliderChange() {
+            const h = parseInt(hueSlider.value);
+            const s = parseInt(saturationSlider.value);
+            const l = parseInt(lightnessSlider.value);
+            
+            updatePickerUI(h, s, l);
+        }
+
+        /** Saves the current HSL values to the palette and triggers persistence. */
+        function saveChanges() {
+            if (!editingKey) return;
+
+            const h = parseInt(hueSlider.value);
+            const s = parseInt(saturationSlider.value);
+            const l = parseInt(lightnessSlider.value);
+
+            const [r, g, b] = hslToRgb(h, s, l);
+            const newRgbArray = [r, g, b, originalAlpha];
+
+            currentPalette[editingKey] = newRgbArray;
+
+            // 1. Update UI
+            const tileToUpdate = document.querySelector(`.color-tile[data-key="${editingKey}"]`);
+            if (tileToUpdate) {
+                const hexColor = rgbArrayToHex(newRgbArray);
+                tileToUpdate.style.backgroundColor = hexColor;
+            }
+
+            // 2. Update JSON Output
+            updateOutputJSON();
+            
+            // 3. PERSISTENCE: Save to local storage! (NEW)
+            savePalette();
+
+            // 4. Close
+            picker.style.display = 'none';
+            editingKey = null;
+        }
+
+        /** Closes the picker without saving any changes. */
+        function cancelChanges() {
+            picker.style.display = 'none';
+            editingKey = null;
+        }
+
+
+        // --- 7. Clipboard Functions ---
+        
+        /** Copies the current JSON to the clipboard. */
+        function copyToClipboard() {
+            navigator.clipboard.writeText(outputJsonElement.value)
+                .then(() => showMessage('JSON copied successfully!'))
+                .catch(err => {
+                    console.error('Could not copy text: ', err);
+                    showMessage('Failed to copy. Clipboard access denied or error.', true);
+                });
+        }
+        
+        /** Reads JSON from the clipboard and updates the palette, then saves it. */
+        async function readFromClipboard() {
+            try {
+                const text = await navigator.clipboard.readText();
+                const newPalette = JSON.parse(text);
+
+                if (typeof newPalette !== 'object' || newPalette === null || !newPalette.hasOwnProperty('foreground')) {
+                    showMessage('Clipboard content is not valid JSON palette format.', true);
+                    return;
+                }
+
+                currentPalette = newPalette;
+                renderPalette();
+                // Save the newly read palette to local storage
+                savePalette();
+                showMessage('Palette successfully read from clipboard and updated!');
+
+            } catch (err) {
+                console.error('Error reading from clipboard:', err);
+                if (err.name === 'NotAllowedError') {
+                    showMessage('Clipboard access denied. You may need to grant permission.', true);
+                } else {
+                    showMessage('Failed to read clipboard or parse JSON.', true);
+                }
+            }
+        }
+
+        // --- 8. Initialization ---
+        
+        // Load the saved palette or the initial one on script start
+        currentPalette = loadPalette(); 
+
+        // Attach event listeners for HSL sliders
+        [hueSlider, saturationSlider, lightnessSlider].forEach(slider => {
+            slider.addEventListener('input', handleSliderChange); 
+        });
+        
+        // Attach event listener for the Save and Cancel buttons
+        saveButton.addEventListener('click', saveChanges); 
+        cancelButton.addEventListener('click', cancelChanges);
+
+        // Attach event listeners for main actions
+        copyButton.addEventListener('click', copyToClipboard);
+        readButton.addEventListener('click', readFromClipboard);
+        clearStorageButton.addEventListener('click', clearSavedPalette); // NEW
+
+        // Initial rendering of the palette
+        document.addEventListener('DOMContentLoaded', renderPalette);
+    </script>
+</body>
+</html>

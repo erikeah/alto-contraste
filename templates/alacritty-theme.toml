@@ -1,0 +1,27 @@
+[colors.cursor]
+cursor = "#{{ .AltBackground.ToHex3 }}"
+text = "#{{ .AltForeground.ToHex3 }}"
+
+[colors.primary]
+background = "#{{ .Background.ToHex3 }}"
+foreground = "#{{ .Foreground.ToHex3 }}"
+
+[colors.normal]
+black = "#{{ .Black.ToHex3 }}"
+blue = "#{{ .Blue.ToHex3 }}"
+cyan = "#{{ .Cyan.ToHex3 }}"
+green = "#{{ .Green.ToHex3 }}"
+magenta = "#{{ .Magenta.ToHex3 }}"
+red = "#{{ .Red.ToHex3 }}"
+yellow = "#{{ .Yellow.ToHex3 }}"
+white = "#{{ .White.ToHex3 }}"
+
+[colors.bright]
+black = "#{{ .AltBlack.ToHex3 }}"
+blue = "#{{ .AltBlue.ToHex3 }}"
+cyan = "#{{ .AltCyan.ToHex3 }}"
+green = "#{{ .AltGreen.ToHex3 }}"
+magenta = "#{{ .AltMagenta.ToHex3 }}"
+red = "#{{ .AltRed.ToHex3 }}"
+yellow = "#{{ .AltYellow.ToHex3 }}"
+white = "#{{ .AltWhite.ToHex3 }}"

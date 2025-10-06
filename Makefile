@@ -1,20 +1,23 @@
 GENERATOR = ./generator
 PALETTE_NAME := $(PALETTE)
 
-templates: alacritty kakoune
+templates: alacritty kakoune editor
 
 build-generator: $(GENERATOR)
 
 $(GENERATOR): cmd/generator/*.go
 	go build -o $@ ./cmd/generator
 
-gen/$(PALETTE_NAME)/%: templates/%.tmpl $(PALETTE) $(GENERATOR)
+gen/$(PALETTE_NAME)/%: templates/% $(PALETTE) $(GENERATOR)
+	$(eval TEMP := $(shell mktemp))
 	@mkdir -p gen/$(PALETTE_NAME)
-	$(GENERATOR) $(PALETTE) < templates/$(notdir $*).tmpl > $@
-
+	$(GENERATOR) $(PALETTE) < templates/$(notdir $*) > $(TEMP)
+	mv $(TEMP) $@
 
 alacritty: gen/$(PALETTE_NAME)/alacritty-theme.toml
 
 kakoune: gen/$(PALETTE_NAME)/kakoune-theme.kak
 
-.PHONY: alacritty kakoune
+editor: gen/$(PALETTE_NAME)/editor.html
+
+.PHONY: $(templates) templates
