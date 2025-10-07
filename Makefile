@@ -1,6 +1,8 @@
 GENERATOR = ./generator
 PALETTE_NAME := $(PALETTE)
 
+default: light dark
+
 templates: alacritty kakoune editor
 
 light:

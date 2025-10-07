@@ -27,7 +27,7 @@ face global list yellow
 ## builtin
 face global Default default,default
 face global PrimarySelection blue,default+frb
-face global SecondarySelection bright-black,bright-white+fb
+face global SecondarySelection white+r
 face global PrimaryCursor default,default+fbr
 face global SecondaryCursor bright-white,bright-black+fg
 face global PrimaryCursorEol default,red+g
@@ -66,7 +66,7 @@ face global ts_constant blue
 face global ts_constructor bright-red
 face global ts_diff_plus bright-green
 face global ts_diff_minus bright-red
-face global ts_diff_delta black
+face global ts_diff_delta default
 # face global ts_diff_delta_moved
 face global ts_error Error
 face global ts_function function
