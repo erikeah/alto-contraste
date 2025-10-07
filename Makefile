@@ -3,6 +3,12 @@ PALETTE_NAME := $(PALETTE)
 
 templates: alacritty kakoune editor
 
+light:
+	$(MAKE) PALETTE_NAME=light PALETTE=./light_palette.json templates
+
+dark:
+	$(MAKE) PALETTE_NAME=dark PALETTE=./dark_palette.json templates
+
 build-generator: $(GENERATOR)
 
 $(GENERATOR): cmd/generator/*.go
@@ -20,4 +26,4 @@ kakoune: gen/$(PALETTE_NAME)/kakoune-theme.kak
 
 editor: gen/$(PALETTE_NAME)/editor.html
 
-.PHONY: $(templates) templates
+.PHONY: $(templates) templates light

@@ -36,7 +36,7 @@ face global LineNumbers bright-black,default
 face global LineNumberCursor rgb:{{ .Orange.ToHex3 }},default+b
 face global LineNumbersWrapped white+i
 face global MenuForeground PrimarySelection
-face global MenuBackground default,bright-white+fg
+face global MenuBackground black,bright-white+fg
 face global Information bright-blue+br
 face global InlineInformation white+fi
 face global Error red+br
