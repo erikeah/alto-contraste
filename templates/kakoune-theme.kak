@@ -40,8 +40,8 @@ face global MenuBackground black,bright-white+fg
 face global Information bright-blue+br
 face global InlineInformation white+fi
 face global Error red+br
-face global DiagnosticError red
-face global DiagnosticWarning rgb:{{ .Orange.ToHex3 }}
+face global DiagnosticError red+fc
+face global DiagnosticWarning rgb:{{ .Orange.ToHex3 }}+f
 face global StatusLine black,bright-white
 face global StatusCursor default,default+bu
 face global Prompt rgb:{{ .Orange.ToHex3 }}+bf
@@ -68,7 +68,7 @@ face global ts_diff_plus bright-green
 face global ts_diff_minus bright-red
 face global ts_diff_delta default
 # face global ts_diff_delta_moved
-face global ts_error Error
+face global ts_error bright-red
 face global ts_function function
 face global ts_function_builtin +b@function
 # face global ts_function_macro
