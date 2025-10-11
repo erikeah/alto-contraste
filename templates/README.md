@@ -1,0 +1,1 @@
+$\textcolor{#{{.Red.Hex3}}}{██}$
