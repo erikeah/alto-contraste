@@ -30,6 +30,7 @@ type Extras struct {
 }
 
 type Palette struct {
+	Name          string
 	Background    Color `json:"background"`     // Default
 	Foreground    Color `json:"foreground"`     // Default
 	AltBackground Color `json:"alt_background"` // Cursor

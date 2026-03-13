@@ -3,13 +3,13 @@ PALETTE_NAME := $(PALETTE)
 
 default: light dark
 
-templates: alacritty kakoune editor
+templates: alacritty kakoune editor foot
 
 light:
-	$(MAKE) PALETTE_NAME=light PALETTE=./light_palette.json templates
+	$(MAKE) PALETTE_NAME=light PALETTE=./light.json templates
 
 dark:
-	$(MAKE) PALETTE_NAME=dark PALETTE=./dark_palette.json templates
+	$(MAKE) PALETTE_NAME=dark PALETTE=./dark.json templates
 
 build-generator: $(GENERATOR)
 
@@ -25,6 +25,8 @@ gen/$(PALETTE_NAME)/%: templates/% $(PALETTE) $(GENERATOR)
 alacritty: gen/$(PALETTE_NAME)/alacritty-theme.toml
 
 kakoune: gen/$(PALETTE_NAME)/kakoune-theme.kak
+
+foot: gen/$(PALETTE_NAME)/foot-theme.ini
 
 editor: gen/$(PALETTE_NAME)/editor.html
 

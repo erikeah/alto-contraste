@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"io"
 	"os"
+	"path/filepath"
+	"strings"
 	"text/template"
 )
 
@@ -16,8 +18,10 @@ func main() {
 		println(err.Error())
 		os.Exit(1)
 	}
-	decoder := json.NewDecoder(theme) // TODO: Read from file provided from param
-	palette := &Palette{}
+	decoder := json.NewDecoder(theme)
+	palette := &Palette{
+		Name: strings.TrimSuffix(filepath.Base(os.Args[1]), ".json"),
+	}
 	if err := decoder.Decode(palette); err != nil {
 		println(err.Error())
 		os.Exit(1)
